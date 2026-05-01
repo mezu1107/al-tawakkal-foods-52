@@ -53,8 +53,11 @@ const CartPage = () => {
 
   const generateWhatsAppMessage = () => {
     const itemsList = items.map((i) => `- ${i.title} x${i.quantity} = Rs.${(i.price * i.quantity).toLocaleString()}`).join("\n");
+    const zoneLine = zoneResult?.allowed
+      ? `\n📍 *Area:* ${zoneResult.label}\n🚚 *Delivery:* Rs.${deliveryCharges.toLocaleString()}`
+      : "";
     return encodeURIComponent(
-      `🛒 *New Order - Al Tawakkal Foods*\n\n👤 *Name:* ${customerName || "Guest"}\n📞 *Phone:* ${phone || "N/A"}\n📍 *Address:* ${address || "N/A"}\n\n📋 *Order:*\n${itemsList}\n\n💰 *Total: Rs.${totalPrice.toLocaleString()}*\n\n💵 Payment: Cash on Delivery`
+      `🛒 *New Order - AL Maalik Foods*\n\n👤 *Name:* ${customerName || "Guest"}\n📞 *Phone:* ${phone || "N/A"}\n📍 *Address:* ${address || "N/A"}${zoneLine}\n\n📋 *Order:*\n${itemsList}\n\n💰 *Subtotal: Rs.${totalPrice.toLocaleString()}*\n💰 *Grand Total: Rs.${grandTotal.toLocaleString()}*\n\n💵 Payment: Cash on Delivery`
     );
   };
 
@@ -62,6 +65,10 @@ const CartPage = () => {
     if (!customerName.trim() || !phone.trim() || !address.trim()) {
       toast({ title: "Please fill all delivery details first", variant: "destructive" });
       setShowCheckout(true);
+      return;
+    }
+    if (!zoneResult || !zoneResult.allowed) {
+      toast({ title: "Out of delivery zone", description: zoneResult?.reason || "Please confirm your location on the map", variant: "destructive" });
       return;
     }
     window.open(`https://wa.me/923431497982?text=${generateWhatsAppMessage()}`, "_blank");
@@ -75,11 +82,15 @@ const CartPage = () => {
       toast({ title: "Please fill all delivery details", variant: "destructive" });
       return;
     }
+    if (!zoneResult || !zoneResult.allowed) {
+      toast({ title: "Sorry, we don't deliver here", description: zoneResult?.reason || "Please set your location on the map", variant: "destructive" });
+      return;
+    }
     setPlacing(true);
     try {
       await supabase.from("profiles").update({ full_name: customerName, phone, address } as any).eq("user_id", user.id);
       const { data: order, error: orderError } = await supabase.from("orders").insert({
-        user_id: user.id, total: totalPrice, status: "pending",
+        user_id: user.id, total: grandTotal, status: "pending",
         customer_name: customerName.trim(), customer_phone: phone.trim(),
         customer_email: user.email || "", customer_address: address.trim(),
       } as any).select().single();
