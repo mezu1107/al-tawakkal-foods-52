@@ -11,6 +11,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import DeliveryZoneCheck from "@/components/DeliveryZoneCheck";
+import { ZoneCheckResult } from "@/lib/delivery";
 
 const CartPage = () => {
   const { items, updateQuantity, removeItem, clearCart, totalPrice, totalItems } = useCart();
@@ -22,6 +24,11 @@ const CartPage = () => {
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [zoneResult, setZoneResult] = useState<ZoneCheckResult | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  const deliveryCharges = zoneResult?.allowed ? zoneResult.charges ?? 0 : 0;
+  const grandTotal = totalPrice + deliveryCharges;
 
   useEffect(() => {
     if (user) {
@@ -46,8 +53,11 @@ const CartPage = () => {
 
   const generateWhatsAppMessage = () => {
     const itemsList = items.map((i) => `- ${i.title} x${i.quantity} = Rs.${(i.price * i.quantity).toLocaleString()}`).join("\n");
+    const zoneLine = zoneResult?.allowed
+      ? `\n📍 *Area:* ${zoneResult.label}\n🚚 *Delivery:* Rs.${deliveryCharges.toLocaleString()}`
+      : "";
     return encodeURIComponent(
-      `🛒 *New Order - Al Tawakkal Foods*\n\n👤 *Name:* ${customerName || "Guest"}\n📞 *Phone:* ${phone || "N/A"}\n📍 *Address:* ${address || "N/A"}\n\n📋 *Order:*\n${itemsList}\n\n💰 *Total: Rs.${totalPrice.toLocaleString()}*\n\n💵 Payment: Cash on Delivery`
+      `🛒 *New Order - AL Maalik Foods*\n\n👤 *Name:* ${customerName || "Guest"}\n📞 *Phone:* ${phone || "N/A"}\n📍 *Address:* ${address || "N/A"}${zoneLine}\n\n📋 *Order:*\n${itemsList}\n\n💰 *Subtotal: Rs.${totalPrice.toLocaleString()}*\n💰 *Grand Total: Rs.${grandTotal.toLocaleString()}*\n\n💵 Payment: Cash on Delivery`
     );
   };
 
@@ -55,6 +65,10 @@ const CartPage = () => {
     if (!customerName.trim() || !phone.trim() || !address.trim()) {
       toast({ title: "Please fill all delivery details first", variant: "destructive" });
       setShowCheckout(true);
+      return;
+    }
+    if (!zoneResult || !zoneResult.allowed) {
+      toast({ title: "Out of delivery zone", description: zoneResult?.reason || "Please confirm your location on the map", variant: "destructive" });
       return;
     }
     window.open(`https://wa.me/923431497982?text=${generateWhatsAppMessage()}`, "_blank");
@@ -68,11 +82,15 @@ const CartPage = () => {
       toast({ title: "Please fill all delivery details", variant: "destructive" });
       return;
     }
+    if (!zoneResult || !zoneResult.allowed) {
+      toast({ title: "Sorry, we don't deliver here", description: zoneResult?.reason || "Please set your location on the map", variant: "destructive" });
+      return;
+    }
     setPlacing(true);
     try {
       await supabase.from("profiles").update({ full_name: customerName, phone, address } as any).eq("user_id", user.id);
       const { data: order, error: orderError } = await supabase.from("orders").insert({
-        user_id: user.id, total: totalPrice, status: "pending",
+        user_id: user.id, total: grandTotal, status: "pending",
         customer_name: customerName.trim(), customer_phone: phone.trim(),
         customer_email: user.email || "", customer_address: address.trim(),
       } as any).select().single();
@@ -149,12 +167,18 @@ const CartPage = () => {
                   </div>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-muted-foreground">Delivery</span>
-                    <span className="font-semibold text-green-600">Free</span>
+                    <span className={`font-semibold ${deliveryCharges === 0 ? "text-green-600" : "text-foreground"}`}>
+                      {zoneResult?.allowed
+                        ? deliveryCharges === 0
+                          ? "Free"
+                          : `Rs. ${deliveryCharges.toLocaleString()}`
+                        : "—"}
+                    </span>
                   </div>
                   <div className="border-t border-border my-4" />
                   <div className="flex justify-between text-xl font-bold">
                     <span>Total</span>
-                    <span className="text-primary">Rs. {totalPrice.toLocaleString()}</span>
+                    <span className="text-primary">Rs. {grandTotal.toLocaleString()}</span>
                   </div>
 
                   {!showCheckout && (
@@ -185,15 +209,32 @@ const CartPage = () => {
                       <Label htmlFor="address" className="flex items-center gap-2 mb-1"><MapPin className="w-4 h-4" /> Delivery Address</Label>
                       <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Your delivery address" required />
                     </div>
+                    <div className="border-t border-border pt-4">
+                      <DeliveryZoneCheck
+                        onResult={(r, c) => {
+                          setZoneResult(r);
+                          setCoords(c);
+                        }}
+                      />
+                    </div>
                     <div className="bg-muted/30 rounded-xl p-3 text-sm text-muted-foreground">
                       💵 Payment: <span className="font-semibold text-foreground">Cash on Delivery</span>
                     </div>
                     <div className="space-y-3">
-                      <Button type="submit" className="w-full h-12 rounded-full font-bold" disabled={placing}>
-                        {placing ? "Placing Order..." : "Place Order & Send to WhatsApp"}
+                      <Button
+                        type="submit"
+                        className="w-full h-12 rounded-full font-bold"
+                        disabled={placing || !zoneResult?.allowed}
+                      >
+                        {placing
+                          ? "Placing Order..."
+                          : !zoneResult?.allowed
+                          ? "Set your delivery location"
+                          : "Place Order & Send to WhatsApp"}
                       </Button>
                       <Button type="button" variant="outline" onClick={handleWhatsAppOrder}
-                        className="w-full h-12 rounded-full font-bold gap-2 border-green-500 text-green-600 hover:bg-green-50">
+                        className="w-full h-12 rounded-full font-bold gap-2 border-green-500 text-green-600 hover:bg-green-50"
+                        disabled={!zoneResult?.allowed}>
                         <MessageCircle className="w-5 h-5" /> WhatsApp Only (No Account)
                       </Button>
                     </div>

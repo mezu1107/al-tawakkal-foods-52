@@ -34,6 +34,7 @@ import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminReviews from "./pages/admin/AdminReviews";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminRiders from "./pages/admin/AdminRiders";
+import AdminDeliveryZones from "./pages/admin/AdminDeliveryZones";
 
 // Rider pages
 import RiderLogin from "./pages/rider/RiderLogin";
@@ -85,6 +86,7 @@ const AnimatedRoutes = () => {
         <Route path="/admin/customers" element={<AdminCustomers />} />
         <Route path="/admin/reviews" element={<AdminReviews />} />
         <Route path="/admin/riders" element={<AdminRiders />} />
+        <Route path="/admin/delivery-zones" element={<AdminDeliveryZones />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
 
         {/* Rider routes */}

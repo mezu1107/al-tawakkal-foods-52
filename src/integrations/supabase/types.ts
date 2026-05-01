@@ -83,6 +83,72 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_areas: {
+        Row: {
+          active: boolean
+          created_at: string
+          delivery_charges: number
+          id: string
+          lat: number
+          lng: number
+          name: string
+          radius_km: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          delivery_charges?: number
+          id?: string
+          lat: number
+          lng: number
+          name: string
+          radius_km?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          delivery_charges?: number
+          id?: string
+          lat?: number
+          lng?: number
+          name?: string
+          radius_km?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      delivery_settings: {
+        Row: {
+          base_delivery_charges: number
+          center_lat: number
+          center_lng: number
+          center_name: string
+          free_radius_km: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          base_delivery_charges?: number
+          center_lat?: number
+          center_lng?: number
+          center_name?: string
+          free_radius_km?: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          base_delivery_charges?: number
+          center_lat?: number
+          center_lng?: number
+          center_name?: string
+          free_radius_km?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       foods: {
         Row: {
           active: boolean
