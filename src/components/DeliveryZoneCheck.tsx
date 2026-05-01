@@ -121,24 +121,24 @@ const DeliveryZoneCheck = ({ onResult }: Props) => {
           }`}
         >
           {result.allowed ? (
-            <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
-          ) : (
-            <XCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          )}
-          <div>
-            {result.allowed ? (
-              <>
-                <p className="font-semibold">
-                  ✅ We deliver to {result.label}
-                </p>
+            <>
+              <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">✅ We deliver to {result.label}</p>
                 <p className="text-xs mt-0.5 opacity-90">
-                  Delivery charges: <strong>Rs. {result.charges.toLocaleString()}</strong>
+                  Delivery charges:{" "}
+                  <strong>Rs. {result.charges.toLocaleString()}</strong>
                 </p>
-              </>
-            ) : (
-              <p className="font-semibold">{result.reason}</p>
-            )}
-          </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <XCircle className="w-5 h-5 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">{result.reason}</p>
+              </div>
+            </>
+          )}
         </div>
       )}
 
