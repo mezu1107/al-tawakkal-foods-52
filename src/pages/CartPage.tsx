@@ -11,6 +11,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import DeliveryZoneCheck from "@/components/DeliveryZoneCheck";
+import { ZoneCheckResult } from "@/lib/delivery";
 
 const CartPage = () => {
   const { items, updateQuantity, removeItem, clearCart, totalPrice, totalItems } = useCart();
@@ -22,6 +24,11 @@ const CartPage = () => {
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [zoneResult, setZoneResult] = useState<ZoneCheckResult | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  const deliveryCharges = zoneResult?.allowed ? zoneResult.charges ?? 0 : 0;
+  const grandTotal = totalPrice + deliveryCharges;
 
   useEffect(() => {
     if (user) {
