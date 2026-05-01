@@ -112,33 +112,24 @@ const DeliveryZoneCheck = ({ onResult }: Props) => {
         height="260px"
       />
 
-      {result && (
-        <div
-          className={`rounded-xl p-3 text-sm flex items-start gap-2 ${
-            result.allowed
-              ? "bg-green-50 text-green-900 border border-green-200 dark:bg-green-950/40 dark:text-green-200 dark:border-green-900"
-              : "bg-red-50 text-red-900 border border-red-200 dark:bg-red-950/40 dark:text-red-200 dark:border-red-900"
-          }`}
-        >
-          {result.allowed ? (
-            <>
-              <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold">✅ We deliver to {result.label}</p>
-                <p className="text-xs mt-0.5 opacity-90">
-                  Delivery charges:{" "}
-                  <strong>Rs. {result.charges.toLocaleString()}</strong>
-                </p>
-              </div>
-            </>
-          ) : (
-            <>
-              <XCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold">{result.reason}</p>
-              </div>
-            </>
-          )}
+      {result && result.allowed && (
+        <div className="rounded-xl p-3 text-sm flex items-start gap-2 bg-green-50 text-green-900 border border-green-200 dark:bg-green-950/40 dark:text-green-200 dark:border-green-900">
+          <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">✅ We deliver to {result.label}</p>
+            <p className="text-xs mt-0.5 opacity-90">
+              Delivery charges:{" "}
+              <strong>Rs. {result.charges.toLocaleString()}</strong>
+            </p>
+          </div>
+        </div>
+      )}
+      {result && !result.allowed && (
+        <div className="rounded-xl p-3 text-sm flex items-start gap-2 bg-red-50 text-red-900 border border-red-200 dark:bg-red-950/40 dark:text-red-200 dark:border-red-900">
+          <XCircle className="w-5 h-5 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">{result.reason}</p>
+          </div>
         </div>
       )}
 
