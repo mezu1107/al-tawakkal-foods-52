@@ -10,6 +10,7 @@ import {
   LogOut,
   ChefHat,
   Bike,
+  MapPin,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -39,6 +40,7 @@ const mainItems = [
 const managementItems = [
   { title: "Customers", url: "/admin/customers", icon: Users },
   { title: "Riders", url: "/admin/riders", icon: Bike },
+  { title: "Delivery Zones", url: "/admin/delivery-zones", icon: MapPin },
   { title: "Reviews", url: "/admin/reviews", icon: Star },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
