@@ -19,10 +19,14 @@ export interface DeliveryArea {
   active: boolean;
 }
 
-export type ZoneCheckResult =
-  | { allowed: true; type: "main"; charges: number; label: string }
-  | { allowed: true; type: "area"; charges: number; label: string; area: DeliveryArea }
-  | { allowed: false; reason: string };
+export interface ZoneCheckResult {
+  allowed: boolean;
+  type?: "main" | "area";
+  charges?: number;
+  label?: string;
+  area?: DeliveryArea;
+  reason?: string;
+}
 
 // Haversine distance in km
 export function distanceKm(
