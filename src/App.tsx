@@ -41,6 +41,18 @@ import RiderLogin from "./pages/rider/RiderLogin";
 import RiderDashboard from "./pages/rider/RiderDashboard";
 import RiderOrders from "./pages/rider/RiderOrders";
 import RiderProfile from "./pages/rider/RiderProfile";
+import RiderMap from "./pages/rider/RiderMap";
+import RiderEarnings from "./pages/rider/RiderEarnings";
+import RiderWallet from "./pages/rider/RiderWallet";
+import RiderHistory from "./pages/rider/RiderHistory";
+import RiderSchedule from "./pages/rider/RiderSchedule";
+import RiderNotifications from "./pages/rider/RiderNotifications";
+import RiderChat from "./pages/rider/RiderChat";
+import RiderReviews from "./pages/rider/RiderReviews";
+import RiderPerformance from "./pages/rider/RiderPerformance";
+import RiderDocuments from "./pages/rider/RiderDocuments";
+import RiderHelp from "./pages/rider/RiderHelp";
+import RiderSettings from "./pages/rider/RiderSettings";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +105,18 @@ const AnimatedRoutes = () => {
         <Route path="/rider/login" element={<RiderLogin />} />
         <Route path="/rider" element={<RiderDashboard />} />
         <Route path="/rider/orders" element={<RiderOrders />} />
+        <Route path="/rider/map" element={<RiderMap />} />
+        <Route path="/rider/earnings" element={<RiderEarnings />} />
+        <Route path="/rider/wallet" element={<RiderWallet />} />
+        <Route path="/rider/history" element={<RiderHistory />} />
+        <Route path="/rider/schedule" element={<RiderSchedule />} />
+        <Route path="/rider/notifications" element={<RiderNotifications />} />
+        <Route path="/rider/chat" element={<RiderChat />} />
+        <Route path="/rider/reviews" element={<RiderReviews />} />
+        <Route path="/rider/performance" element={<RiderPerformance />} />
+        <Route path="/rider/documents" element={<RiderDocuments />} />
+        <Route path="/rider/help" element={<RiderHelp />} />
+        <Route path="/rider/settings" element={<RiderSettings />} />
         <Route path="/rider/profile" element={<RiderProfile />} />
 
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
