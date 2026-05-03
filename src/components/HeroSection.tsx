@@ -3,6 +3,7 @@ import { Search, ArrowDown, Sparkles, Bot } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useRef, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import heroBg from "@/assets/hero-bg.jpg";
 
 const TypeWriter = ({ texts }: { texts: string[] }) => {
   const [idx, setIdx] = useState(0);
@@ -66,7 +67,7 @@ const HeroSection = () => {
       <motion.div style={{ y }} className="absolute inset-0">
         <div className="absolute inset-0"
           style={{
-            background: "linear-gradient(rgba(0,0,0,0.58), rgba(0,0,0,0.72)), url('https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=2000&q=80') center/cover no-repeat",
+            background: `linear-gradient(rgba(20,10,5,0.62), rgba(20,10,5,0.78)), url(${heroBg}) center/cover no-repeat`,
           }}
         />
       </motion.div>

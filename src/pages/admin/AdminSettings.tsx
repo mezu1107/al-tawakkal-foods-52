@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Save, Store, Phone, MapPin, Clock, Globe } from "lucide-react";
+import { Save, Store, Phone, MapPin, Clock, Globe, Bike } from "lucide-react";
 
 interface SettingsRow {
   id: string;
@@ -25,18 +25,35 @@ interface SettingsRow {
 
 const AdminSettings = () => {
   const [settings, setSettings] = useState<SettingsRow | null>(null);
+  const [riderSettings, setRiderSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingRider, setSavingRider] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetch = async () => {
-      const { data } = await supabase.from("website_settings" as any).select("*").limit(1).single();
-      if (data) setSettings(data as unknown as SettingsRow);
+      const [s, r] = await Promise.all([
+        supabase.from("website_settings" as any).select("*").limit(1).single(),
+        supabase.from("rider_settings" as any).select("*").limit(1).single(),
+      ]);
+      if ((s as any).data) setSettings((s as any).data as SettingsRow);
+      if ((r as any).data) setRiderSettings((r as any).data);
       setLoading(false);
     };
     fetch();
   }, []);
+
+  const saveRider = async () => {
+    if (!riderSettings) return;
+    setSavingRider(true);
+    const { id, ...payload } = riderSettings;
+    const { error } = await supabase.from("rider_settings" as any).update({ ...payload, updated_at: new Date().toISOString() }).eq("id", id);
+    if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    else toast({ title: "Rider settings saved! 🏍️" });
+    setSavingRider(false);
+  };
+  const updateRider = (field: string, value: any) => setRiderSettings({ ...riderSettings, [field]: value });
 
   const handleSave = async () => {
     if (!settings) return;
@@ -134,6 +151,46 @@ const AdminSettings = () => {
             </div>
           </CardContent>
         </Card>
+
+
+        {/* Rider Portal Settings */}
+        {riderSettings && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base"><Bike className="w-5 h-5" /> Rider Portal Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label>Commission Percent (%)</Label>
+                  <Input type="number" value={riderSettings.commission_percent} onChange={(e) => updateRider("commission_percent", parseFloat(e.target.value) || 0)} />
+                  <p className="text-xs text-muted-foreground mt-1">Rider earns this % of each delivered order.</p>
+                </div>
+                <div>
+                  <Label>Minimum Payout (Rs.)</Label>
+                  <Input type="number" value={riderSettings.min_payout} onChange={(e) => updateRider("min_payout", parseFloat(e.target.value) || 0)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label>Support Phone</Label>
+                  <Input value={riderSettings.support_phone} onChange={(e) => updateRider("support_phone", e.target.value)} />
+                </div>
+                <div>
+                  <Label>Support WhatsApp</Label>
+                  <Input value={riderSettings.support_whatsapp} onChange={(e) => updateRider("support_whatsapp", e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <Label>Payout Schedule</Label>
+                <Input value={riderSettings.payout_schedule} onChange={(e) => updateRider("payout_schedule", e.target.value)} placeholder="weekly / biweekly / monthly" />
+              </div>
+              <Button onClick={saveRider} disabled={savingRider} variant="outline" className="gap-2">
+                <Save className="w-4 h-4" /> {savingRider ? "Saving..." : "Save Rider Settings"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto gap-2">
           <Save className="w-4 h-4" /> {saving ? "Saving..." : "Save Settings"}
