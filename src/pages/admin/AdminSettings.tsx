@@ -152,6 +152,46 @@ const AdminSettings = () => {
           </CardContent>
         </Card>
 
+
+        {/* Rider Portal Settings */}
+        {riderSettings && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base"><Bike className="w-5 h-5" /> Rider Portal Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label>Commission Percent (%)</Label>
+                  <Input type="number" value={riderSettings.commission_percent} onChange={(e) => updateRider("commission_percent", parseFloat(e.target.value) || 0)} />
+                  <p className="text-xs text-muted-foreground mt-1">Rider earns this % of each delivered order.</p>
+                </div>
+                <div>
+                  <Label>Minimum Payout (Rs.)</Label>
+                  <Input type="number" value={riderSettings.min_payout} onChange={(e) => updateRider("min_payout", parseFloat(e.target.value) || 0)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label>Support Phone</Label>
+                  <Input value={riderSettings.support_phone} onChange={(e) => updateRider("support_phone", e.target.value)} />
+                </div>
+                <div>
+                  <Label>Support WhatsApp</Label>
+                  <Input value={riderSettings.support_whatsapp} onChange={(e) => updateRider("support_whatsapp", e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <Label>Payout Schedule</Label>
+                <Input value={riderSettings.payout_schedule} onChange={(e) => updateRider("payout_schedule", e.target.value)} placeholder="weekly / biweekly / monthly" />
+              </div>
+              <Button onClick={saveRider} disabled={savingRider} variant="outline" className="gap-2">
+                <Save className="w-4 h-4" /> {savingRider ? "Saving..." : "Save Rider Settings"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto gap-2">
           <Save className="w-4 h-4" /> {saving ? "Saving..." : "Save Settings"}
         </Button>
