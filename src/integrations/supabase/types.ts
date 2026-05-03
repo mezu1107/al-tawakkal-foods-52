@@ -354,6 +354,183 @@ export type Database = {
           },
         ]
       }
+      rider_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          expiry_date: string | null
+          file_url: string
+          id: string
+          rider_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          expiry_date?: string | null
+          file_url?: string
+          id?: string
+          rider_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          expiry_date?: string | null
+          file_url?: string
+          id?: string
+          rider_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      rider_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          read: boolean
+          rider_id: string
+          sender: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          rider_id: string
+          sender: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          rider_id?: string
+          sender?: string
+        }
+        Relationships: []
+      }
+      rider_notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          read: boolean
+          rider_id: string
+          title: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          rider_id: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          rider_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      rider_payouts: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          period_end: string | null
+          period_start: string | null
+          rider_id: string
+          status: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          rider_id: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          rider_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      rider_schedule: {
+        Row: {
+          available: boolean
+          day_of_week: number
+          end_time: string
+          id: string
+          rider_id: string
+          start_time: string
+        }
+        Insert: {
+          available?: boolean
+          day_of_week: number
+          end_time?: string
+          id?: string
+          rider_id: string
+          start_time?: string
+        }
+        Update: {
+          available?: boolean
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          rider_id?: string
+          start_time?: string
+        }
+        Relationships: []
+      }
+      rider_settings: {
+        Row: {
+          commission_percent: number
+          id: string
+          min_payout: number
+          payout_schedule: string
+          support_phone: string
+          support_whatsapp: string
+          updated_at: string
+        }
+        Insert: {
+          commission_percent?: number
+          id?: string
+          min_payout?: number
+          payout_schedule?: string
+          support_phone?: string
+          support_whatsapp?: string
+          updated_at?: string
+        }
+        Update: {
+          commission_percent?: number
+          id?: string
+          min_payout?: number
+          payout_schedule?: string
+          support_phone?: string
+          support_whatsapp?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       testimonials: {
         Row: {
           avatar: string | null
