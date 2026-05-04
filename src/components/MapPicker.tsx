@@ -1,55 +1,15 @@
-import { useEffect, useMemo } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Circle,
-  useMap,
-  useMapEvents,
-} from "react-leaflet";
+import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
-
-// Fix default marker icons (Leaflet + bundlers issue)
-const DefaultIcon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-L.Marker.prototype.options.icon = DefaultIcon;
-
-interface RecenterProps {
-  lat: number;
-  lng: number;
-}
 
 const isValidCoord = (n: unknown): n is number =>
   typeof n === "number" && Number.isFinite(n);
 
-const Recenter = ({ lat, lng }: RecenterProps) => {
-  const map = useMap();
-  useEffect(() => {
-    if (!isValidCoord(lat) || !isValidCoord(lng)) return;
-    map.setView([lat, lng], map.getZoom(), { animate: true });
-  }, [lat, lng, map]);
-  return null;
-};
-
-interface ClickHandlerProps {
-  onPick: (lat: number, lng: number) => void;
-}
-
-const ClickHandler = ({ onPick }: ClickHandlerProps) => {
-  useMapEvents({
-    click(e) {
-      onPick(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-};
+const pinIcon = L.divIcon({
+  className: "map-picker-pin",
+  html: '<span class="map-picker-pin-dot"></span>',
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
 
 export interface ExtraCircle {
   lat: number;
@@ -82,61 +42,105 @@ const MapPicker = ({
   extras = [],
   zoom = 13,
 }: MapPickerProps) => {
+  const mapEl = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+  const radiusRef = useRef<L.Circle | null>(null);
+  const extrasRef = useRef<L.LayerGroup | null>(null);
+  const onChangeRef = useRef(onChange);
+  const draggableRef = useRef(draggable);
+
   const safeLat = isValidCoord(lat) ? lat : 33.5651;
   const safeLng = isValidCoord(lng) ? lng : 73.1486;
   const center = useMemo<[number, number]>(() => [safeLat, safeLng], [safeLat, safeLng]);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+    draggableRef.current = draggable;
+  }, [draggable, onChange]);
+
+  useEffect(() => {
+    if (!mapEl.current || mapRef.current) return;
+
+    const map = L.map(mapEl.current, { scrollWheelZoom: true }).setView(center, zoom);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    const marker = L.marker(center, { draggable: draggableRef.current, icon: pinIcon }).addTo(map);
+    marker.on("dragend", () => {
+      const p = marker.getLatLng();
+      onChangeRef.current?.(p.lat, p.lng);
+    });
+    map.on("click", (e: L.LeafletMouseEvent) => {
+      if (!draggableRef.current) return;
+      onChangeRef.current?.(e.latlng.lat, e.latlng.lng);
+    });
+
+    mapRef.current = map;
+    markerRef.current = marker;
+    extrasRef.current = L.layerGroup().addTo(map);
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+      radiusRef.current = null;
+      extrasRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const marker = markerRef.current;
+    if (!map || !marker) return;
+
+    marker.setLatLng(center);
+    map.setView(center, map.getZoom(), { animate: true });
+  }, [center]);
+
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (!marker) return;
+    if (draggable && onChange) marker.dragging?.enable();
+    else marker.dragging?.disable();
+  }, [draggable, onChange]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const extrasLayer = extrasRef.current;
+    if (!map || !extrasLayer) return;
+
+    if (radiusRef.current) {
+      radiusRef.current.remove();
+      radiusRef.current = null;
+    }
+    if (showRadius && radiusKm > 0) {
+      radiusRef.current = L.circle(center, {
+        radius: radiusKm * 1000,
+        color: "hsl(var(--primary))",
+        fillOpacity: 0.1,
+      }).addTo(map);
+    }
+
+    extrasLayer.clearLayers();
+    extras
+      .filter((c) => isValidCoord(c.lat) && isValidCoord(c.lng) && isValidCoord(c.radiusKm))
+      .forEach((c) => {
+        L.circle([c.lat, c.lng], {
+          radius: c.radiusKm * 1000,
+          color: c.color || "hsl(var(--accent))",
+          fillOpacity: 0.08,
+        }).addTo(extrasLayer);
+      });
+  }, [center, extras, radiusKm, showRadius]);
 
   return (
     <div
       className="rounded-xl overflow-hidden border border-border"
       style={{ height }}
     >
-      <MapContainer
-        center={center}
-        zoom={zoom}
-        scrollWheelZoom
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Recenter lat={lat} lng={lng} />
-        {draggable && onChange && <ClickHandler onPick={onChange} />}
-
-        <Marker
-          position={center}
-          draggable={draggable && !!onChange}
-          eventHandlers={{
-            dragend: (e) => {
-              const m = e.target as L.Marker;
-              const p = m.getLatLng();
-              onChange?.(p.lat, p.lng);
-            },
-          }}
-        />
-        {showRadius && radiusKm > 0 && (
-          <Circle
-            center={center}
-            radius={radiusKm * 1000}
-            pathOptions={{ color: "hsl(var(--primary))", fillOpacity: 0.1 }}
-          />
-        )}
-
-        {extras
-          .filter((c) => isValidCoord(c.lat) && isValidCoord(c.lng) && isValidCoord(c.radiusKm))
-          .map((c, i) => (
-            <Circle
-              key={i}
-              center={[c.lat, c.lng]}
-              radius={c.radiusKm * 1000}
-              pathOptions={{
-                color: c.color || "hsl(var(--accent))",
-                fillOpacity: 0.08,
-              }}
-            />
-          ))}
-      </MapContainer>
+      <div ref={mapEl} className="h-full w-full" />
     </div>
   );
 };
