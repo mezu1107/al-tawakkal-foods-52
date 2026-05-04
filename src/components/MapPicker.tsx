@@ -123,17 +123,19 @@ const MapPicker = ({
           />
         )}
 
-        {extras.map((c, i) => (
-          <Circle
-            key={i}
-            center={[c.lat, c.lng]}
-            radius={c.radiusKm * 1000}
-            pathOptions={{
-              color: c.color || "hsl(var(--accent))",
-              fillOpacity: 0.08,
-            }}
-          />
-        ))}
+        {extras
+          .filter((c) => isValidCoord(c.lat) && isValidCoord(c.lng) && isValidCoord(c.radiusKm))
+          .map((c, i) => (
+            <Circle
+              key={i}
+              center={[c.lat, c.lng]}
+              radius={c.radiusKm * 1000}
+              pathOptions={{
+                color: c.color || "hsl(var(--accent))",
+                fillOpacity: 0.08,
+              }}
+            />
+          ))}
       </MapContainer>
     </div>
   );
