@@ -86,7 +86,7 @@ const HomemadeBanner = () => {
               <Link to="/menu" className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-7 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition-transform">
                 🍽️ Explore Menu
               </Link>
-              <a href="https://wa.me/923431497982?text=Assalam%20o%20Alaikum!%20I%20want%20to%20order%20homemade%20food%20from%20Al%20Tawakkal%20Foods" target="_blank" rel="noopener noreferrer"
+              <a href="https://wa.me/923320123459?text=Assalam%20o%20Alaikum!%20I%20want%20to%20order%20homemade%20food%20from%20Al%20Tawakkal%20Foods" target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 bg-secondary text-secondary-foreground px-7 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition-transform">
                 📱 Order on WhatsApp
               </a>

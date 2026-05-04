@@ -1,21 +1,26 @@
 import { motion } from "framer-motion";
-import { MessageCircle } from "lucide-react";
+import { Phone } from "lucide-react";
 
 const FloatingWhatsApp = () => (
   <motion.a
-    href="https://wa.me/923431497982?text=Assalam%20o%20Alaikum!%20I%20want%20to%20order%20from%20Al%20Tawakkal%20Foods"
+    href="https://wa.me/923320123459?text=Assalam%20o%20Alaikum!%20I%20want%20to%20order%20from%20Al%20Tawakkal%20Foods"
     target="_blank"
     rel="noopener noreferrer"
-    initial={{ scale: 0 }}
-    animate={{ scale: 1 }}
-    transition={{ delay: 1, type: "spring" }}
-    whileHover={{ scale: 1.15 }}
-    whileTap={{ scale: 0.9 }}
-    className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center shadow-2xl"
-    aria-label="Chat on WhatsApp"
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    className="fixed bottom-6 left-6 z-50 group flex items-center gap-2 pl-3 pr-4 py-3 bg-primary text-primary-foreground rounded-full shadow-xl border border-accent/30"
+    aria-label="Order on WhatsApp"
   >
-    <MessageCircle className="w-7 h-7" />
-    <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive rounded-full animate-ping" />
+    <span className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center">
+      <Phone className="w-4 h-4" />
+    </span>
+    <span className="text-sm font-semibold tracking-wide hidden sm:inline">
+      Order Now
+    </span>
+    <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full animate-ping" />
   </motion.a>
 );
 
