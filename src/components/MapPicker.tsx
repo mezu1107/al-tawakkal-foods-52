@@ -53,6 +53,8 @@ const MapPicker = ({
   const safeLat = isValidCoord(lat) ? lat : 33.5651;
   const safeLng = isValidCoord(lng) ? lng : 73.1486;
   const center = useMemo<[number, number]>(() => [safeLat, safeLng], [safeLat, safeLng]);
+  const initialCenterRef = useRef(center);
+  const initialZoomRef = useRef(zoom);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -62,12 +64,15 @@ const MapPicker = ({
   useEffect(() => {
     if (!mapEl.current || mapRef.current) return;
 
-    const map = L.map(mapEl.current, { scrollWheelZoom: true }).setView(center, zoom);
+    const map = L.map(mapEl.current, { scrollWheelZoom: true }).setView(
+      initialCenterRef.current,
+      initialZoomRef.current
+    );
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
 
-    const marker = L.marker(center, { draggable: draggableRef.current, icon: pinIcon }).addTo(map);
+    const marker = L.marker(initialCenterRef.current, { draggable: draggableRef.current, icon: pinIcon }).addTo(map);
     marker.on("dragend", () => {
       const p = marker.getLatLng();
       onChangeRef.current?.(p.lat, p.lng);
