@@ -26,9 +26,13 @@ interface RecenterProps {
   lng: number;
 }
 
+const isValidCoord = (n: unknown): n is number =>
+  typeof n === "number" && Number.isFinite(n);
+
 const Recenter = ({ lat, lng }: RecenterProps) => {
   const map = useMap();
   useEffect(() => {
+    if (!isValidCoord(lat) || !isValidCoord(lng)) return;
     map.setView([lat, lng], map.getZoom(), { animate: true });
   }, [lat, lng, map]);
   return null;
@@ -78,7 +82,9 @@ const MapPicker = ({
   extras = [],
   zoom = 13,
 }: MapPickerProps) => {
-  const center = useMemo<[number, number]>(() => [lat, lng], [lat, lng]);
+  const safeLat = isValidCoord(lat) ? lat : 33.5651;
+  const safeLng = isValidCoord(lng) ? lng : 73.1486;
+  const center = useMemo<[number, number]>(() => [safeLat, safeLng], [safeLat, safeLng]);
 
   return (
     <div
@@ -117,17 +123,19 @@ const MapPicker = ({
           />
         )}
 
-        {extras.map((c, i) => (
-          <Circle
-            key={i}
-            center={[c.lat, c.lng]}
-            radius={c.radiusKm * 1000}
-            pathOptions={{
-              color: c.color || "hsl(var(--accent))",
-              fillOpacity: 0.08,
-            }}
-          />
-        ))}
+        {extras
+          .filter((c) => isValidCoord(c.lat) && isValidCoord(c.lng) && isValidCoord(c.radiusKm))
+          .map((c, i) => (
+            <Circle
+              key={i}
+              center={[c.lat, c.lng]}
+              radius={c.radiusKm * 1000}
+              pathOptions={{
+                color: c.color || "hsl(var(--accent))",
+                fillOpacity: 0.08,
+              }}
+            />
+          ))}
       </MapContainer>
     </div>
   );
