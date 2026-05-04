@@ -82,7 +82,9 @@ const MapPicker = ({
   extras = [],
   zoom = 13,
 }: MapPickerProps) => {
-  const center = useMemo<[number, number]>(() => [lat, lng], [lat, lng]);
+  const safeLat = isValidCoord(lat) ? lat : 33.5651;
+  const safeLng = isValidCoord(lng) ? lng : 73.1486;
+  const center = useMemo<[number, number]>(() => [safeLat, safeLng], [safeLat, safeLng]);
 
   return (
     <div
