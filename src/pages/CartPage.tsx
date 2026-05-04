@@ -71,7 +71,7 @@ const CartPage = () => {
       toast({ title: "Out of delivery zone", description: zoneResult?.reason || "Please confirm your location on the map", variant: "destructive" });
       return;
     }
-    window.open(`https://wa.me/923431497982?text=${generateWhatsAppMessage()}`, "_blank");
+    window.open(`https://wa.me/923320123459?text=${generateWhatsAppMessage()}`, "_blank");
     toast({ title: "Order sent to WhatsApp! 📱" });
   };
 
@@ -102,7 +102,7 @@ const CartPage = () => {
       if (itemsError) throw itemsError;
 
       // Also send to WhatsApp
-      window.open(`https://wa.me/923431497982?text=${generateWhatsAppMessage()}`, "_blank");
+      window.open(`https://wa.me/923320123459?text=${generateWhatsAppMessage()}`, "_blank");
       clearCart();
       toast({ title: "Order Placed Successfully! 🎉" });
       navigate("/order-success");

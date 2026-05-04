@@ -95,7 +95,7 @@ const AIChatAssistant = () => {
     const orderMatch = lastAssistant.match(/ORDER_CONFIRMED[\s\S]*/i);
     const orderText = orderMatch ? orderMatch[0] : messages.map((m) => `${m.role === "user" ? "Customer" : "AI"}: ${m.content}`).join("\n");
     const whatsappMsg = encodeURIComponent(`🤖 AI Order - Al Tawakkal Foods\n\n${orderText}`);
-    window.open(`https://wa.me/923431497982?text=${whatsappMsg}`, "_blank");
+    window.open(`https://wa.me/923320123459?text=${whatsappMsg}`, "_blank");
   };
 
   return (

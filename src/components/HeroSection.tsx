@@ -104,7 +104,7 @@ const HeroSection = () => {
           {/* CTA Buttons */}
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
-            <a href="https://wa.me/923431497982?text=Assalam%20o%20Alaikum!%20I%20want%20to%20order%20from%20Al%20Tawakkal%20Foods" target="_blank" rel="noopener noreferrer">
+            <a href="https://wa.me/923320123459?text=Assalam%20o%20Alaikum!%20I%20want%20to%20order%20from%20Al%20Tawakkal%20Foods" target="_blank" rel="noopener noreferrer">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-4 rounded-full font-bold text-lg shadow-2xl transition-all inline-flex items-center justify-center gap-2">
                 📱 Order via WhatsApp
