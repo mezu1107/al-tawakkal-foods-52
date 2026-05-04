@@ -13,8 +13,7 @@ import HomemadeBanner from "@/components/HomemadeBanner";
 import AppDownloadSection from "@/components/AppDownloadSection";
 import PopularBrands from "@/components/PopularBrands";
 import ScrollProgress from "@/components/ScrollProgress";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import AIChatAssistant from "@/components/AIChatAssistant";
+import FloatingActionMenu from "@/components/FloatingActionMenu";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -24,24 +23,24 @@ const Index = () => {
       <Header />
       <main>
         <HeroSection />
-        <PopularBrands />
-        <HomemadeBanner />
-        <FlashDeals />
-        <HowItWorks />
         <CategoriesSection />
-        <StatsCounter />
+        <FlashDeals />
         <PopularFoods />
+        <HomemadeBanner />
+        <HowItWorks />
+        <StatsCounter />
         <SpecialBanner />
+        <PopularBrands />
         <WhyChooseUs />
-        <AppDownloadSection />
         <TestimonialsSection />
+        <AppDownloadSection />
         <NewsletterSection />
       </main>
       <Footer />
-      <FloatingWhatsApp />
-      <AIChatAssistant />
+      <FloatingActionMenu />
     </div>
   );
 };
 
 export default Index;
+
