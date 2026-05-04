@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, X, Send, Sparkles, ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,15 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+export type AIChatHandle = { open: () => void; close: () => void };
+
+type AIChatAssistantProps = { hideTrigger?: boolean };
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-order-assistant`;
 
-const AIChatAssistant = () => {
+const AIChatAssistant = forwardRef<AIChatHandle, AIChatAssistantProps>(({ hideTrigger = false }, ref) => {
   const [open, setOpen] = useState(false);
+  useImperativeHandle(ref, () => ({ open: () => setOpen(true), close: () => setOpen(false) }), []);
   const [messages, setMessages] = useState<Msg[]>([
     { role: "assistant", content: "Assalam o Alaikum! 👋 I'm your AI ordering assistant at Al Tawakkal Foods. Tell me what you'd like to eat — in English or Urdu!\n\nTry: \"mujhe 2 seekh kabab aur 1 biryani chahiye\"" },
   ]);
