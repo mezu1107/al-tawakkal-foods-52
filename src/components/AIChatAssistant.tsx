@@ -219,6 +219,8 @@ const AIChatAssistant = forwardRef<AIChatHandle, AIChatAssistantProps>(({ hideTr
       </AnimatePresence>
     </>
   );
-};
+});
+
+AIChatAssistant.displayName = "AIChatAssistant";
 
 export default AIChatAssistant;
