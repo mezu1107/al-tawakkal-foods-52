@@ -26,9 +26,13 @@ interface RecenterProps {
   lng: number;
 }
 
+const isValidCoord = (n: unknown): n is number =>
+  typeof n === "number" && Number.isFinite(n);
+
 const Recenter = ({ lat, lng }: RecenterProps) => {
   const map = useMap();
   useEffect(() => {
+    if (!isValidCoord(lat) || !isValidCoord(lng)) return;
     map.setView([lat, lng], map.getZoom(), { animate: true });
   }, [lat, lng, map]);
   return null;
