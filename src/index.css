@@ -148,4 +148,21 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .map-picker-pin {
+    display: grid;
+    place-items: center;
+    border-radius: 9999px;
+    background: hsl(var(--primary) / 0.18);
+    border: 1px solid hsl(var(--primary) / 0.35);
+  }
+
+  .map-picker-pin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    border: 3px solid hsl(var(--primary-foreground));
+    box-shadow: 0 8px 18px hsl(var(--primary) / 0.28);
+  }
 }
