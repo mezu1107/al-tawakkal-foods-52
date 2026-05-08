@@ -3,7 +3,7 @@ importScripts("https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js
 importScripts("https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js");
 
 firebase.initializeApp({
-  apiKey: "AIzaSyDummy-replace-with-real-from-console",
+  apiKey: "AIzaSyBU-9-DFUYVd68wJaPr0sbMuU5yM1gL4AM",
   authDomain: "al-tawakkal-foods.firebaseapp.com",
   projectId: "al-tawakkal-foods",
   storageBucket: "al-tawakkal-foods.firebasestorage.app",
