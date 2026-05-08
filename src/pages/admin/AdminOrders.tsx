@@ -87,6 +87,16 @@ const AdminOrders = () => {
       toast({ title: `Order status → ${newStatus}` });
       fetchOrders();
       if (detailOrder?.id === orderId) setDetailOrder({ ...detailOrder, status: newStatus });
+      const order = orders.find((o) => o.id === orderId);
+      if (order?.user_id) {
+        const { sendPush } = await import("@/lib/push");
+        sendPush({
+          user_ids: [order.user_id],
+          title: "📦 Order Update",
+          body: `Your order is now: ${newStatus}`,
+          url: "/orders",
+        });
+      }
     }
   };
 
@@ -98,6 +108,15 @@ const AdminOrders = () => {
       toast({ title: "Rider assigned ✅" });
       fetchOrders();
       if (detailOrder?.id === orderId) setDetailOrder({ ...detailOrder, rider_id: riderId });
+      if (riderId && riderId !== "unassigned") {
+        const { sendPush } = await import("@/lib/push");
+        sendPush({
+          user_ids: [riderId],
+          title: "🛵 New Delivery Assigned",
+          body: "You have a new order to deliver. Check your dashboard.",
+          url: "/rider/orders",
+        });
+      }
     }
   };
 

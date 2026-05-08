@@ -13,6 +13,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import DeliveryZoneCheck from "@/components/DeliveryZoneCheck";
 import { ZoneCheckResult } from "@/lib/delivery";
+import { sendPush } from "@/lib/push";
 
 const CartPage = () => {
   const { items, updateQuantity, removeItem, clearCart, totalPrice, totalItems } = useCart();
@@ -100,6 +101,14 @@ const CartPage = () => {
       }));
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems as any);
       if (itemsError) throw itemsError;
+
+      // Notify all admins
+      sendPush({
+        scope: "admin",
+        title: "🛒 New Order",
+        body: `${customerName} • Rs. ${grandTotal.toLocaleString()} • ${totalItems} items`,
+        url: "/admin/orders",
+      });
 
       // Also send to WhatsApp
       window.open(`https://wa.me/923320123459?text=${generateWhatsAppMessage()}`, "_blank");

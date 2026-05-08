@@ -3,6 +3,8 @@ import { Navigate, Link, useLocation } from "react-router-dom";
 import { useRiderCheck } from "@/hooks/useRiderCheck";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePushRegistration } from "@/hooks/usePushRegistration";
+import { usePWAManifest } from "@/hooks/usePWAInstall";
 import {
   Bike, LayoutDashboard, Package, User, LogOut, Map, Wallet, History,
   Calendar, Bell, MessageSquare, Star, HelpCircle, Settings, TrendingUp,
@@ -37,6 +39,8 @@ export default function RiderLayout({ children, title }: RiderLayoutProps) {
   const { isRider, loading, user } = useRiderCheck();
   const { signOut } = useAuth();
   const location = useLocation();
+  usePushRegistration("rider");
+  usePWAManifest("/manifest-rider.json");
 
   if (loading) {
     return (

@@ -3,7 +3,7 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getMessaging, getToken, onMessage, isSupported, type Messaging } from "firebase/messaging";
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyDummy-replace-with-real-from-console", // user must paste real apiKey here
+  apiKey: "AIzaSyBU-9-DFUYVd68wJaPr0sbMuU5yM1gL4AM",
   authDomain: "al-tawakkal-foods.firebaseapp.com",
   projectId: "al-tawakkal-foods",
   storageBucket: "al-tawakkal-foods.firebasestorage.app",
@@ -30,6 +30,12 @@ export async function getMessagingSafe(): Promise<Messaging | null> {
 
 export async function requestPushToken(): Promise<string | null> {
   try {
+    // Skip inside Lovable preview iframe to avoid SW pollution of the editor.
+    const inIframe = (() => {
+      try { return window.self !== window.top; } catch { return true; }
+    })();
+    if (inIframe) return null;
+
     const messaging = await getMessagingSafe();
     if (!messaging) return null;
 
