@@ -30,6 +30,12 @@ export async function getMessagingSafe(): Promise<Messaging | null> {
 
 export async function requestPushToken(): Promise<string | null> {
   try {
+    // Skip inside Lovable preview iframe to avoid SW pollution of the editor.
+    const inIframe = (() => {
+      try { return window.self !== window.top; } catch { return true; }
+    })();
+    if (inIframe) return null;
+
     const messaging = await getMessagingSafe();
     if (!messaging) return null;
 

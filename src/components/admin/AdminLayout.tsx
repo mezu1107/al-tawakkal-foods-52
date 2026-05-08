@@ -4,6 +4,8 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePushRegistration } from "@/hooks/usePushRegistration";
+import { usePWAManifest } from "@/hooks/usePWAInstall";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -12,6 +14,8 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children, title }: AdminLayoutProps) {
   const { isAdmin, loading, user } = useAdminCheck();
+  usePushRegistration("admin");
+  usePWAManifest("/manifest-admin.json");
 
   if (loading) {
     return (
