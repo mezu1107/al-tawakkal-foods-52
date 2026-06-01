@@ -15,6 +15,7 @@ import PopularBrands from "@/components/PopularBrands";
 import ScrollProgress from "@/components/ScrollProgress";
 import FloatingActionMenu from "@/components/FloatingActionMenu";
 import Footer from "@/components/Footer";
+import RecentlyViewed from "@/components/RecentlyViewed";
 
 const Index = () => {
   return (
@@ -26,6 +27,7 @@ const Index = () => {
         <CategoriesSection />
         <FlashDeals />
         <PopularFoods />
+        <RecentlyViewed />
         <HomemadeBanner />
         <HowItWorks />
         <StatsCounter />

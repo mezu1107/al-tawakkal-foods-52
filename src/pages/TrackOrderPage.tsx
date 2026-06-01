@@ -62,6 +62,24 @@ const TrackOrderPage = () => {
       });
   }, [user]);
 
+  // Realtime subscription for live status updates
+  useEffect(() => {
+    if (!order?.id) return;
+    const channel = supabase
+      .channel(`order-${order.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${order.id}` },
+        (payload) => {
+          setOrder(payload.new);
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [order?.id]);
+
   const currentStepIdx = order ? statusSteps.findIndex(s => s.key === (order as any).status) : -1;
   const isCancelled = order && (order as any).status === "cancelled";
 

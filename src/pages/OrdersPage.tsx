@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { useNavigate, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, ChevronDown, ChevronUp, Package, User, Phone, MapPin } from "lucide-react";
+import { ShoppingBag, ChevronDown, ChevronUp, Package, User, Phone, MapPin, RotateCcw, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { downloadInvoice } from "@/lib/invoice";
 import type { DbOrder, DbOrderItem } from "@/types/database";
 
 const OrdersPage = () => {
   const { user, loading: authLoading } = useAuth();
+  const { addItem } = useCart();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<DbOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -154,11 +159,53 @@ const OrdersPage = () => {
                             )}
                           </div>
 
-                          {order.status !== "delivered" && order.status !== "cancelled" && (
-                            <Link to="/track-order">
-                              <Button variant="outline" size="sm" className="rounded-full">Track Order</Button>
-                            </Link>
-                          )}
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {orderItemsMap[order.id] && orderItemsMap[order.id].length > 0 && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-full gap-1.5"
+                                onClick={() => {
+                                  orderItemsMap[order.id].forEach((it) => {
+                                    if (it.food_id) {
+                                      addItem({
+                                        id: it.food_id,
+                                        title: it.title,
+                                        price: Number(it.price),
+                                        imageUrl: "",
+                                      });
+                                    }
+                                  });
+                                  toast({ title: "Items added to cart! 🛒" });
+                                  navigate("/cart");
+                                }}
+                              >
+                                <RotateCcw className="w-4 h-4" /> Reorder
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="rounded-full gap-1.5"
+                              onClick={() =>
+                                downloadInvoice(
+                                  order as any,
+                                  (orderItemsMap[order.id] || []).map((it) => ({
+                                    title: it.title,
+                                    quantity: it.quantity,
+                                    price: Number(it.price),
+                                  }))
+                                )
+                              }
+                            >
+                              <FileDown className="w-4 h-4" /> Invoice PDF
+                            </Button>
+                            {order.status !== "delivered" && order.status !== "cancelled" && (
+                              <Link to="/track-order">
+                                <Button variant="outline" size="sm" className="rounded-full">Track Order</Button>
+                              </Link>
+                            )}
+                          </div>
                         </div>
                       </motion.div>
                     )}
