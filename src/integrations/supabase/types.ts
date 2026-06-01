@@ -41,6 +41,81 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_redemptions: {
+        Row: {
+          coupon_id: string
+          created_at: string
+          discount_amount: number
+          id: string
+          order_id: string | null
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          order_id?: string | null
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          order_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      coupons: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          max_discount: number | null
+          min_order_amount: number
+          updated_at: string
+          usage_limit: number | null
+          used_count: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          max_discount?: number | null
+          min_order_amount?: number
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          max_discount?: number | null
+          min_order_amount?: number
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+        }
+        Relationships: []
+      }
       deals: {
         Row: {
           active: boolean
@@ -199,6 +274,33 @@ export type Database = {
           },
         ]
       }
+      loyalty_transactions: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string | null
+          points: number
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          points: number
+          reason?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          points?: number
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -246,38 +348,56 @@ export type Database = {
       }
       orders: {
         Row: {
+          coupon_code: string | null
           created_at: string
           customer_address: string | null
           customer_email: string | null
           customer_name: string | null
           customer_phone: string | null
+          delivery_charges: number
+          discount_amount: number
           id: string
+          points_earned: number
+          points_redeemed: number
           rider_id: string | null
           status: string
+          subtotal: number
           total: number
           user_id: string
         }
         Insert: {
+          coupon_code?: string | null
           created_at?: string
           customer_address?: string | null
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
+          delivery_charges?: number
+          discount_amount?: number
           id?: string
+          points_earned?: number
+          points_redeemed?: number
           rider_id?: string | null
           status?: string
+          subtotal?: number
           total?: number
           user_id: string
         }
         Update: {
+          coupon_code?: string | null
           created_at?: string
           customer_address?: string | null
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
+          delivery_charges?: number
+          discount_amount?: number
           id?: string
+          points_earned?: number
+          points_redeemed?: number
           rider_id?: string | null
           status?: string
+          subtotal?: number
           total?: number
           user_id?: string
         }
@@ -289,7 +409,10 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          loyalty_points: number
+          notification_prefs: Json
           phone: string | null
+          referral_code: string | null
           updated_at: string
           user_id: string
         }
@@ -298,7 +421,10 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          loyalty_points?: number
+          notification_prefs?: Json
           phone?: string | null
+          referral_code?: string | null
           updated_at?: string
           user_id: string
         }
@@ -307,7 +433,10 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          loyalty_points?: number
+          notification_prefs?: Json
           phone?: string | null
+          referral_code?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -343,6 +472,33 @@ export type Database = {
           updated_at?: string
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_user_id: string
+          referrer_id: string
+          reward_granted: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_user_id: string
+          referrer_id: string
+          reward_granted?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_user_id?: string
+          referrer_id?: string
+          reward_granted?: boolean
         }
         Relationships: []
       }
@@ -594,6 +750,48 @@ export type Database = {
           rating?: number | null
           role?: string | null
           text?: string
+        }
+        Relationships: []
+      }
+      user_addresses: {
+        Row: {
+          address: string
+          created_at: string
+          id: string
+          is_default: boolean
+          label: string
+          lat: number | null
+          lng: number | null
+          phone: string | null
+          recipient_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          lat?: number | null
+          lng?: number | null
+          phone?: string | null
+          recipient_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          lat?: number | null
+          lng?: number | null
+          phone?: string | null
+          recipient_name?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
