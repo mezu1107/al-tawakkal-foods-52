@@ -11,6 +11,7 @@ import {
   ChefHat,
   Bike,
   MapPin,
+  TicketPercent,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -35,6 +36,7 @@ const mainItems = [
   { title: "Deals", url: "/admin/deals", icon: Tag },
   { title: "Categories", url: "/admin/categories", icon: FolderOpen },
   { title: "Orders", url: "/admin/orders", icon: ShoppingBag },
+  { title: "Coupons", url: "/admin/coupons", icon: TicketPercent },
 ];
 
 const managementItems = [
