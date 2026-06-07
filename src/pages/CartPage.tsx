@@ -79,11 +79,11 @@ const CartPage = () => {
     }
     setValidating(true);
     const res = await validateCoupon(couponInput, subtotal);
-    if (res.ok) {
+    if (res.ok === true) {
       setCoupon(res.data);
       toast({ title: `Coupon applied! −Rs. ${res.data.discount.toLocaleString()}` });
     } else {
-      toast({ title: res.error, variant: "destructive" });
+      toast({ title: (res as { ok: false; error: string }).error, variant: "destructive" });
     }
     setValidating(false);
   };
