@@ -29,12 +29,13 @@ const TypeWriter = ({ texts }: { texts: string[] }) => {
   }, [charIdx, deleting, idx, texts]);
 
   return (
-    <span className="text-accent-foreground">
+    <span className="text-highlight">
       {texts[idx].slice(0, charIdx)}
-      <motion.span animate={{ opacity: [1, 0] }} transition={{ repeat: Infinity, duration: 0.6 }} className="inline-block w-0.5 h-[1em] bg-accent-foreground ml-1 align-baseline" />
+      <motion.span animate={{ opacity: [1, 0] }} transition={{ repeat: Infinity, duration: 0.6 }} className="inline-block w-0.5 h-[1em] bg-highlight ml-1 align-baseline" />
     </span>
   );
 };
+
 
 const FloatingFood = ({ emoji, className, delay = 0 }: { emoji: string; className: string; delay?: number }) => (
   <motion.span
@@ -86,7 +87,7 @@ const HeroSection = () => {
         <div className="max-w-4xl mx-auto text-center text-primary-foreground">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
             className="inline-flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-md px-5 py-2 rounded-full text-sm font-medium mb-8 border border-primary-foreground/20">
-            <Sparkles className="w-4 h-4 text-accent-foreground" />
+            <Sparkles className="w-4 h-4 text-highlight" />
             🤖 AI-Powered Food Ordering
           </motion.div>
 

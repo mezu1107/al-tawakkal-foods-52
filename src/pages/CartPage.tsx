@@ -1,7 +1,10 @@
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Minus, Plus, Trash2, ShoppingBag, MapPin, Phone, User, MessageCircle } from "lucide-react";
+import {
+  Minus, Plus, Trash2, ShoppingBag, MapPin, Phone, User, MessageCircle,
+  TicketPercent, Sparkles, X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +17,8 @@ import Footer from "@/components/Footer";
 import DeliveryZoneCheck from "@/components/DeliveryZoneCheck";
 import { ZoneCheckResult } from "@/lib/delivery";
 import { sendPush } from "@/lib/push";
+import { validateCoupon, AppliedCoupon } from "@/lib/coupons";
+import { getBalance, MIN_REDEEM_POINTS, POINT_VALUE_RUPEES, calcEarn } from "@/lib/loyalty";
 
 const CartPage = () => {
   const { items, updateQuantity, removeItem, clearCart, totalPrice, totalItems } = useCart();
@@ -28,8 +33,21 @@ const CartPage = () => {
   const [zoneResult, setZoneResult] = useState<ZoneCheckResult | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
+  // Coupon state
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+  const [validating, setValidating] = useState(false);
+
+  // Loyalty state
+  const [balance, setBalance] = useState(0);
+  const [redeemPts, setRedeemPts] = useState(0);
+
+  const subtotal = totalPrice;
+  const couponDiscount = coupon?.discount ?? 0;
+  const loyaltyDiscount = Math.min(redeemPts * POINT_VALUE_RUPEES, subtotal - couponDiscount);
   const deliveryCharges = zoneResult?.allowed ? zoneResult.charges ?? 0 : 0;
-  const grandTotal = totalPrice + deliveryCharges;
+  const grandTotal = Math.max(0, subtotal - couponDiscount - loyaltyDiscount + deliveryCharges);
+  const willEarn = calcEarn(grandTotal);
 
   useEffect(() => {
     if (user) {
@@ -40,8 +58,35 @@ const CartPage = () => {
           setAddress((data as any).address || "");
         }
       });
+      getBalance(user.id).then(setBalance);
     }
   }, [user]);
+
+  // Re-validate coupon if subtotal drops below min
+  useEffect(() => {
+    if (coupon && subtotal < coupon.coupon.min_order_amount) {
+      setCoupon(null);
+      toast({ title: "Coupon removed", description: "Order no longer meets minimum.", variant: "destructive" });
+    }
+  }, [subtotal, coupon, toast]);
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    if (!user) {
+      toast({ title: "Sign in to use coupons", variant: "destructive" });
+      navigate("/auth");
+      return;
+    }
+    setValidating(true);
+    const res = await validateCoupon(couponInput, subtotal);
+    if (res.ok === true) {
+      setCoupon(res.data);
+      toast({ title: `Coupon applied! −Rs. ${res.data.discount.toLocaleString()}` });
+    } else {
+      toast({ title: (res as { ok: false; error: string }).error, variant: "destructive" });
+    }
+    setValidating(false);
+  };
 
   const handleProceedToCheckout = () => {
     if (!user) {
@@ -57,8 +102,10 @@ const CartPage = () => {
     const zoneLine = zoneResult?.allowed
       ? `\n📍 *Area:* ${zoneResult.label}\n🚚 *Delivery:* Rs.${deliveryCharges.toLocaleString()}`
       : "";
+    const couponLine = coupon ? `\n🎟️ *Coupon (${coupon.coupon.code}):* −Rs.${couponDiscount.toLocaleString()}` : "";
+    const loyaltyLine = loyaltyDiscount > 0 ? `\n⭐ *Loyalty (${redeemPts} pts):* −Rs.${loyaltyDiscount.toLocaleString()}` : "";
     return encodeURIComponent(
-      `🛒 *New Order - AL Maalik Foods*\n\n👤 *Name:* ${customerName || "Guest"}\n📞 *Phone:* ${phone || "N/A"}\n📍 *Address:* ${address || "N/A"}${zoneLine}\n\n📋 *Order:*\n${itemsList}\n\n💰 *Subtotal: Rs.${totalPrice.toLocaleString()}*\n💰 *Grand Total: Rs.${grandTotal.toLocaleString()}*\n\n💵 Payment: Cash on Delivery`
+      `🛒 *New Order - AL Maalik Foods*\n\n👤 *Name:* ${customerName || "Guest"}\n📞 *Phone:* ${phone || "N/A"}\n📍 *Address:* ${address || "N/A"}${zoneLine}\n\n📋 *Order:*\n${itemsList}\n\n💰 *Subtotal: Rs.${subtotal.toLocaleString()}*${couponLine}${loyaltyLine}\n💰 *Grand Total: Rs.${grandTotal.toLocaleString()}*\n\n💵 Payment: Cash on Delivery`
     );
   };
 
@@ -91,18 +138,29 @@ const CartPage = () => {
     try {
       await supabase.from("profiles").update({ full_name: customerName, phone, address } as any).eq("user_id", user.id);
       const { data: order, error: orderError } = await supabase.from("orders").insert({
-        user_id: user.id, total: grandTotal, status: "pending",
-        customer_name: customerName.trim(), customer_phone: phone.trim(),
-        customer_email: user.email || "", customer_address: address.trim(),
+        user_id: user.id,
+        total: grandTotal,
+        subtotal,
+        status: "pending",
+        customer_name: customerName.trim(),
+        customer_phone: phone.trim(),
+        customer_email: user.email || "",
+        customer_address: address.trim(),
+        coupon_code: coupon?.coupon.code ?? null,
+        discount_amount: couponDiscount + loyaltyDiscount,
+        delivery_charges: deliveryCharges,
+        points_earned: willEarn,
+        points_redeemed: redeemPts,
       } as any).select().single();
       if (orderError) throw orderError;
+
       const orderItems = items.map((item) => ({
         order_id: (order as any).id, food_id: item.id, title: item.title, quantity: item.quantity, price: item.price,
       }));
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems as any);
       if (itemsError) throw itemsError;
 
-      // Notify all admins
+      // Notify admins
       sendPush({
         scope: "admin",
         title: "🛒 New Order",
@@ -110,7 +168,6 @@ const CartPage = () => {
         url: "/admin/orders",
       });
 
-      // Also send to WhatsApp
       window.open(`https://wa.me/923320123459?text=${generateWhatsAppMessage()}`, "_blank");
       clearCart();
       toast({ title: "Order Placed Successfully! 🎉" });
@@ -165,6 +222,73 @@ const CartPage = () => {
                     </motion.div>
                   ))}
                 </AnimatePresence>
+
+                {/* Coupon */}
+                <div className="bg-card rounded-2xl shadow-md p-5">
+                  <h3 className="text-base font-heading font-bold mb-3 flex items-center gap-2">
+                    <TicketPercent className="w-5 h-5 text-primary" /> Have a coupon?
+                  </h3>
+                  {coupon ? (
+                    <div className="flex items-center justify-between bg-success/10 border border-success/30 rounded-xl px-4 py-3">
+                      <div>
+                        <p className="font-bold text-success">{coupon.coupon.code}</p>
+                        <p className="text-xs text-muted-foreground">−Rs. {couponDiscount.toLocaleString()} {coupon.coupon.description ? `• ${coupon.coupon.description}` : ""}</p>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => setCoupon(null)}><X className="w-4 h-4" /></Button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        placeholder="Enter code"
+                        className="rounded-full"
+                        maxLength={32}
+                      />
+                      <Button onClick={handleApplyCoupon} disabled={validating || !couponInput.trim()} className="rounded-full">
+                        {validating ? "..." : "Apply"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Loyalty */}
+                {user && balance >= MIN_REDEEM_POINTS && (
+                  <div className="bg-card rounded-2xl shadow-md p-5">
+                    <h3 className="text-base font-heading font-bold mb-2 flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-highlight" /> Redeem Loyalty Points
+                    </h3>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      You have <span className="font-bold text-foreground">{balance}</span> pts ({POINT_VALUE_RUPEES} pt = Rs. {POINT_VALUE_RUPEES}). Minimum redeem: {MIN_REDEEM_POINTS} pts.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="number"
+                        min={0}
+                        max={Math.min(balance, Math.floor((subtotal - couponDiscount) / POINT_VALUE_RUPEES))}
+                        value={redeemPts || ""}
+                        onChange={(e) => {
+                          const n = Math.max(0, parseInt(e.target.value) || 0);
+                          const cap = Math.min(balance, Math.floor((subtotal - couponDiscount) / POINT_VALUE_RUPEES));
+                          setRedeemPts(Math.min(n, cap));
+                        }}
+                        placeholder="0"
+                        className="rounded-full"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full shrink-0"
+                        onClick={() => setRedeemPts(Math.min(balance, Math.floor((subtotal - couponDiscount) / POINT_VALUE_RUPEES)))}
+                      >
+                        Max
+                      </Button>
+                    </div>
+                    {loyaltyDiscount > 0 && (
+                      <p className="text-xs text-success font-semibold mt-2">−Rs. {loyaltyDiscount.toLocaleString()} applied</p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-6">
@@ -172,11 +296,23 @@ const CartPage = () => {
                   <h3 className="text-lg font-heading font-bold text-foreground mb-4">Order Summary</h3>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-muted-foreground">Items ({totalItems})</span>
-                    <span className="font-semibold">Rs. {totalPrice.toLocaleString()}</span>
+                    <span className="font-semibold">Rs. {subtotal.toLocaleString()}</span>
                   </div>
+                  {couponDiscount > 0 && (
+                    <div className="flex justify-between text-sm mb-2 text-success">
+                      <span>Coupon</span>
+                      <span className="font-semibold">−Rs. {couponDiscount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {loyaltyDiscount > 0 && (
+                    <div className="flex justify-between text-sm mb-2 text-success">
+                      <span>Loyalty ({redeemPts} pts)</span>
+                      <span className="font-semibold">−Rs. {loyaltyDiscount.toLocaleString()}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-muted-foreground">Delivery</span>
-                    <span className={`font-semibold ${deliveryCharges === 0 ? "text-green-600" : "text-foreground"}`}>
+                    <span className={`font-semibold ${deliveryCharges === 0 ? "text-success" : "text-foreground"}`}>
                       {zoneResult?.allowed
                         ? deliveryCharges === 0
                           ? "Free"
@@ -189,13 +325,18 @@ const CartPage = () => {
                     <span>Total</span>
                     <span className="text-primary">Rs. {grandTotal.toLocaleString()}</span>
                   </div>
+                  {willEarn > 0 && user && (
+                    <p className="text-xs text-highlight font-semibold mt-2 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" /> You'll earn {willEarn} pts on this order
+                    </p>
+                  )}
 
                   {!showCheckout && (
                     <div className="space-y-3 mt-6">
                       <Button className="w-full h-12 rounded-full font-bold" onClick={handleProceedToCheckout}>
                         Proceed to Checkout
                       </Button>
-                      <Button variant="outline" className="w-full h-12 rounded-full font-bold gap-2 border-green-500 text-green-600 hover:bg-green-50" onClick={() => { setShowCheckout(true); }}>
+                      <Button variant="outline" className="w-full h-12 rounded-full font-bold gap-2 border-success text-success hover:bg-success/10" onClick={() => { setShowCheckout(true); }}>
                         <MessageCircle className="w-5 h-5" /> Order via WhatsApp
                       </Button>
                     </div>
@@ -208,15 +349,15 @@ const CartPage = () => {
                     <h3 className="text-lg font-heading font-bold text-foreground mb-2">Delivery Details</h3>
                     <div>
                       <Label htmlFor="name" className="flex items-center gap-2 mb-1"><User className="w-4 h-4" /> Full Name</Label>
-                      <Input id="name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Your name" required />
+                      <Input id="name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Your name" required maxLength={100} />
                     </div>
                     <div>
                       <Label htmlFor="phone" className="flex items-center gap-2 mb-1"><Phone className="w-4 h-4" /> Phone Number</Label>
-                      <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+92 343 1497982" required />
+                      <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+92 343 1497982" required maxLength={20} />
                     </div>
                     <div>
                       <Label htmlFor="address" className="flex items-center gap-2 mb-1"><MapPin className="w-4 h-4" /> Delivery Address</Label>
-                      <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Your delivery address" required />
+                      <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Your delivery address" required maxLength={255} />
                     </div>
                     <div className="border-t border-border pt-4">
                       <DeliveryZoneCheck
@@ -242,7 +383,7 @@ const CartPage = () => {
                           : "Place Order & Send to WhatsApp"}
                       </Button>
                       <Button type="button" variant="outline" onClick={handleWhatsAppOrder}
-                        className="w-full h-12 rounded-full font-bold gap-2 border-green-500 text-green-600 hover:bg-green-50"
+                        className="w-full h-12 rounded-full font-bold gap-2 border-success text-success hover:bg-success/10"
                         disabled={!zoneResult?.allowed}>
                         <MessageCircle className="w-5 h-5" /> WhatsApp Only (No Account)
                       </Button>
