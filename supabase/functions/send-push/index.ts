@@ -1,4 +1,5 @@
 // Send FCM push notifications via the HTTP v1 API using a service-account JWT.
+// REQUIRES: caller must be authenticated AND have the 'admin' role.
 // Body: { user_ids?: string[], scope?: 'customer'|'admin'|'rider'|'all', title: string, body: string, url?: string, data?: Record<string,string> }
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -56,18 +57,43 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
   return j.access_token;
 }
 
+function unauthorized(msg = "Unauthorized") {
+  return new Response(JSON.stringify({ error: msg }), {
+    status: 401,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const saJson = Deno.env.get("FCM_SERVICE_ACCOUNT_JSON");
-    if (!saJson) throw new Error("FCM_SERVICE_ACCOUNT_JSON not configured");
-    const sa = JSON.parse(saJson);
+    // --- AUTH: require admin caller ---
+    const authHeader = req.headers.get("Authorization") || "";
+    if (!authHeader.startsWith("Bearer ")) return unauthorized();
+    const callerClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: userData, error: userErr } = await callerClient.auth.getUser();
+    if (userErr || !userData?.user) return unauthorized();
 
     const supa = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+    const { data: roleRow } = await supa
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!roleRow) return unauthorized("Admin role required");
+
+    const saJson = Deno.env.get("FCM_SERVICE_ACCOUNT_JSON");
+    if (!saJson) throw new Error("FCM_SERVICE_ACCOUNT_JSON not configured");
+    const sa = JSON.parse(saJson);
 
     const body = await req.json().catch(() => ({}));
     const { user_ids, scope, title, body: text, url, data } = body || {};
@@ -125,7 +151,6 @@ Deno.serve(async (req) => {
       else {
         const errText = await r.text();
         failures.push({ token: token.slice(0, 12) + "…", status: r.status, error: errText });
-        // Clean up unregistered tokens
         if (r.status === 404 || (errText && errText.includes("UNREGISTERED"))) {
           await supa.from("push_tokens").delete().eq("token", token);
         }
